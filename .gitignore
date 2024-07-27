@@ -1,3 +1,9 @@
+# Codeblocks
+*.cbp
+*.depend
+*.swp
+/bin
+
 # Prerequisites
 *.d
 
