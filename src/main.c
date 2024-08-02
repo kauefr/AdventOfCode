@@ -26,7 +26,7 @@ int main(int argc, char **argv) {
         for (size_t i = 0; i<BUFSIZ; ++i) {
             switch (buffer[i]) {
                 case '\0':
-                    break;
+                    goto END_FOR;
                 case '(':
                     sum += 1;
                     break;
@@ -38,7 +38,7 @@ int main(int argc, char **argv) {
                     return_value = EXIT_FAILURE;
                     goto CLOSE;
             }
-        }
+        } END_FOR:
     }
     //fgets returned 0
     if (ferror(fp)) {
