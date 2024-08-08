@@ -1,30 +1,17 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
+#include <errno.h>
+#include <string.h>
 
-int direct_mode(int argc, char **argv) {
-    int return_value = EXIT_SUCCESS;
-    if (argc != 2) {
-        fprintf(stderr, "Error: 1 argument expected, %d received\n", argc-1);
-        return_value = EXIT_FAILURE;
-        goto RETURN;
-    }
-
-    FILE *fp;
-    if (!(fp = fopen(argv[1], "r"))) {
-        perror(NULL);
-        return_value = EXIT_FAILURE;
-        goto RETURN;
-    }
-    //fp is open
-
+int y2015d1p1(FILE *input_file, int *result) {
     int sum = 0;
     char buffer[BUFSIZ];
-    while (buffer == fgets(buffer, BUFSIZ, fp)) {
+    errno = 0;
+    while (buffer == fgets(buffer, BUFSIZ, input_file)) {
         for (size_t i = 0; i<BUFSIZ; ++i) {
             switch (buffer[i]) {
                 case '\0':
-                    goto END_FOR;
+                    goto BREAK_FOR;
                 case '(':
                     sum += 1;
                     break;
@@ -33,30 +20,68 @@ int direct_mode(int argc, char **argv) {
                     break;
                 default:
                     fprintf(stderr, "Error: unknown character '%hhx'\n", (unsigned char) buffer[i]);
-                    return_value = EXIT_FAILURE;
-                    goto CLOSE;
+                    return EXIT_FAILURE;
             }
-        } END_FOR:
+        }
+        BREAK_FOR:;
     }
-    //fgets returned 0
-    if (ferror(fp)) {
+    if (ferror(input_file)) {
         perror(NULL);
-        return_value = EXIT_FAILURE;
-        goto CLOSE;
+        return EXIT_FAILURE;
     }
 
-    printf("Result: %d\n", sum);
+    *result = sum;
+    return EXIT_SUCCESS;
+}
 
-    CLOSE:
-    fclose(fp);
-    //fp is closed
-    RETURN:
+int direct_mode(int argc, char **argv) {
+    int return_value = EXIT_FAILURE;
+    
+    if (argc != 2) {
+        fprintf(stderr, "Error: 1 argument expected, %d received\n", argc-1);
+        return return_value;
+    }
+
+    FILE *input_file;
+    errno = 0;
+    if (!(input_file = fopen(argv[1], "r"))) {
+        perror(NULL);
+        return return_value;
+    }
+
+    int sum = 0;
+    if (!y2015d1p1(input_file, &sum)) {
+        printf("Result: %d\n", sum);
+        return_value = EXIT_SUCCESS;
+    }
+    
+    fclose(input_file);
     return return_value;
 }
 
 int interactive_mode() {
-    fprintf(stderr, "Error: Interactive mode not implemented.\n");
-    return EXIT_FAILURE;
+    int return_value = EXIT_FAILURE;
+    printf("Enter input file path: ");
+    fflush(stdout);
+    char buffer[BUFSIZ];
+    errno = 0;
+    if (buffer != fgets(buffer, BUFSIZ, stdin)) return EXIT_FAILURE;
+    buffer[strcspn(buffer,"\r\n")] = '\0';
+    FILE *input_file;
+    errno = 0;
+    if (!(input_file = fopen(buffer, "r"))) {
+        perror(NULL);
+        return EXIT_FAILURE;
+    }
+
+    int sum = 0;
+    if (!y2015d1p1(input_file, &sum)) {
+        printf("Result: %d\n", sum);
+        return_value = EXIT_SUCCESS;
+    }
+    
+    fclose(input_file);
+    return return_value;
 }
 
 int main(int argc, char **argv) {

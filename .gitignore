@@ -1,6 +1,9 @@
 # Executable
 AdventOfCode
 
+# Visual Studio Code
+/.vscode
+
 # Codeblocks
 *.cbp
 *.depend
